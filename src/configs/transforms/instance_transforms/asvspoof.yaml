@@ -1,0 +1,15 @@
+train:
+  data_object:
+    _target_: src.transforms.LogSpectrogram
+    n_fft: 1724
+    hop_length: 130
+    window_length: 1724
+    fixed_length: 600
+
+inference:
+  data_object:
+    _target_: src.transforms.LogSpectrogram
+    n_fft: 1724
+    hop_length: 130
+    window_length: 1724
+    fixed_length: 600
