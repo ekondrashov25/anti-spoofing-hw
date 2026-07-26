@@ -1,1 +1,1 @@
-from src.datasets.example import ASVSpoofDataset
+from src.datasets.asvspoof_dataset import ASVSpoofDataset
