@@ -129,12 +129,14 @@ class Trainer(BaseTrainer):
 
             err *= 100
 
-            self.evaluation_metrics.update("EER", err)
-
             self.writer.set_step(epoch * self.epoch_len, part)
             self._log_scalars(self.evaluation_metrics)
+            self.writer.add_scalar("EER", err)
             self._log_batch(
                 batch_idx, batch, part
             )  # log only the last batch during inference
 
-        return self.evaluation_metrics.result()
+        logs = self.evaluation_metrics.result()
+        logs["EER"] = err
+
+        return logs
