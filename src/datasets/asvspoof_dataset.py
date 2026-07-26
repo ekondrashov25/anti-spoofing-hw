@@ -24,11 +24,11 @@ class ASVSpoofDataset(BaseDataset):
 
                 file_name, label_string = parts[1], parts[4]
 
-                label = 1 if label_string == "bonadife" else 0
+                label = 1 if label_string == "bonafide" else 0
 
                 index.append(
                     {
-                        "file_path": f"{audio_dir}/{file_name}.flac",
+                        "path": f"{audio_dir}/{file_name}.flac",
                         "label": label,
                     }
                 )
