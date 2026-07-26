@@ -1,3 +1,7 @@
+import torch
+from tqdm import tqdm
+
+from src.metrics.calculate_eer import compute_eer
 from src.metrics.tracker import MetricTracker
 from src.trainer.base_trainer import BaseTrainer
 
@@ -77,3 +81,60 @@ class Trainer(BaseTrainer):
         else:
             # Log Stuff
             pass
+
+    def _evaluation_epoch(self, epoch, part, dataloader):
+        """
+        Evaluate model on the partition after training for an epoch. Added evaluation of EER
+
+        Args:
+            epoch (int): current training epoch.
+            part (str): partition to evaluate on
+            dataloader (DataLoader): dataloader for the partition.
+        Returns:
+            logs (dict): logs that contain the information about evaluation.
+        """
+        self.is_train = False
+        self.model.eval()
+        self.evaluation_metrics.reset()
+
+        all_scores = []
+        all_labels = []
+
+        with torch.no_grad():
+            for batch_idx, batch in tqdm(
+                enumerate(dataloader),
+                desc=part,
+                total=len(dataloader),
+            ):
+                batch = self.process_batch(
+                    batch,
+                    metrics=self.evaluation_metrics,
+                )
+
+                batch_scores = batch["logits"][:, 1]
+                batch_labels = batch["labels"]
+
+                all_scores.append(batch_scores)
+                all_labels.append(batch_labels)
+
+            scores_tensor = torch.cat(all_scores)
+            labels_tensor = torch.cat(all_labels)
+
+            bonafide_scores = scores_tensor[labels_tensor == 1]
+            spoof_scores = scores_tensor[labels_tensor == 0]
+
+            err, threshold = compute_eer(
+                bonafide_scores.cpu().numpy(), spoof_scores.cpu().numpy()
+            )
+
+            err *= 100
+
+            self.evaluation_metrics.update("EER", err)
+
+            self.writer.set_step(epoch * self.epoch_len, part)
+            self._log_scalars(self.evaluation_metrics)
+            self._log_batch(
+                batch_idx, batch, part
+            )  # log only the last batch during inference
+
+        return self.evaluation_metrics.result()
