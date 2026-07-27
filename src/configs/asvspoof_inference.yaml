@@ -1,0 +1,14 @@
+defaults:
+  - model: lcnn
+  - metrics: empty
+  - datasets: asvspoof_eval
+  - dataloader: asvspoof_loader
+  - transforms: asvspoof_transforms
+  - _self_
+inferencer:
+  device_tensors: ["data_object", "labels"] # which tensors should be on device (ex. GPU)
+  device: auto # device name or "auto"
+  save_path: "asvspoof_eval" # subfolder under data/saved
+  seed: 1
+  from_pretrained: "saved/model_best.pth" # path to the pretrained model
+  submission_name: "eakondrashov"

@@ -1,3 +1,5 @@
+import csv
+
 import torch
 from tqdm.auto import tqdm
 
@@ -65,6 +67,8 @@ class Inferencer(BaseTrainer):
         # path definition
 
         self.save_path = save_path
+        self.submission_name = config.inferencer.get("submission_name")
+        self._predictions = {}
 
         # define metrics
         self.metrics = metrics
@@ -126,29 +130,12 @@ class Inferencer(BaseTrainer):
             for met in self.metrics["inference"]:
                 metrics.update(met.name, met(**batch))
 
-        # Some saving logic. This is an example
-        # Use if you need to save predictions on disk
+        scores = (batch["logits"][:, 1] - batch["logits"][:, 0]).detach().cpu()
 
-        batch_size = batch["logits"].shape[0]
-        current_id = batch_idx * batch_size
-
-        for i in range(batch_size):
-            # clone because of
-            # https://github.com/pytorch/pytorch/issues/1995
-            logits = batch["logits"][i].clone()
-            label = batch["labels"][i].clone()
-            pred_label = logits.argmax(dim=-1)
-
-            output_id = current_id + i
-
-            output = {
-                "pred_label": pred_label,
-                "label": label,
-            }
-
-            if self.save_path is not None:
-                # you can use safetensors or other lib here
-                torch.save(output, self.save_path / part / f"output_{output_id}.pth")
+        if "utt_id" in batch:
+            self._predictions.setdefault(part, []).extend(
+                zip(batch["utt_id"], scores.tolist())
+            )
 
         return batch
 
@@ -168,10 +155,6 @@ class Inferencer(BaseTrainer):
 
         self.evaluation_metrics.reset()
 
-        # create Save dir
-        if self.save_path is not None:
-            (self.save_path / part).mkdir(exist_ok=True, parents=True)
-
         with torch.no_grad():
             for batch_idx, batch in tqdm(
                 enumerate(dataloader),
@@ -185,4 +168,16 @@ class Inferencer(BaseTrainer):
                     metrics=self.evaluation_metrics,
                 )
 
+        self._save_submission_csv(part)
+
         return self.evaluation_metrics.result()
+
+    def _save_submission_csv(self, part):
+        predictions = self._predictions.get(part)
+        if not predictions or self.save_path is None or self.submission_name is None:
+            return
+
+        csv_path = self.save_path / f"{self.submission_name}.csv"
+        with csv_path.open("w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(predictions)
