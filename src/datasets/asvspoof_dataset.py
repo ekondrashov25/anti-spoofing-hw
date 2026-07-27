@@ -30,6 +30,7 @@ class ASVSpoofDataset(BaseDataset):
                     {
                         "path": f"{audio_dir}/{file_name}.flac",
                         "label": label,
+                        "utt_id": file_name,
                     }
                 )
 
