@@ -5,7 +5,7 @@ from src.model.mfm import MFM
 
 
 class LCNN(nn.Module):
-    def __init__(self, dropout_prob=0.75, num_classes=2):
+    def __init__(self, n_fft, fixed_length, dropout_prob=0.75, num_classes=2):
         super().__init__()
 
         self.nn = nn.Sequential(
@@ -35,7 +35,12 @@ class LCNN(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        flatten_size = 32 * 53 * 37  # не бейте за такое
+        freq_bins = n_fft // 2 + 1
+        self.nn.eval()
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, 1, freq_bins, fixed_length)
+            flatten_size = self.nn(dummy_input).flatten(1).shape[1]
+        self.nn.train()
 
         self.fc1 = nn.Linear(flatten_size, 160)
         self.bn = nn.BatchNorm1d(num_features=80)
