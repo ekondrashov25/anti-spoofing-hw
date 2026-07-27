@@ -111,7 +111,7 @@ class Trainer(BaseTrainer):
                     metrics=self.evaluation_metrics,
                 )
 
-                batch_scores = batch["logits"][:, 1]
+                batch_scores = batch["logits"][:, 1] - batch["logits"][:, 0]
                 batch_labels = batch["labels"]
 
                 all_scores.append(batch_scores)
