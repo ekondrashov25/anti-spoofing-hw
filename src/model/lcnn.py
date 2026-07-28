@@ -5,7 +5,7 @@ from src.model.mfm import MFM
 
 
 class LCNN(nn.Module):
-    def __init__(self, n_fft, fixed_length, dropout_prob=0.75, num_classes=2):
+    def __init__(self, n_freq_bins, fixed_length, dropout_prob=0.75, num_classes=2):
         super().__init__()
 
         self.nn = nn.Sequential(
@@ -35,10 +35,9 @@ class LCNN(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
 
-        freq_bins = n_fft // 2 + 1
         self.nn.eval()
         with torch.no_grad():
-            dummy_input = torch.zeros(1, 1, freq_bins, fixed_length)
+            dummy_input = torch.zeros(1, 1, n_freq_bins, fixed_length)
             flatten_size = self.nn(dummy_input).flatten(1).shape[1]
         self.nn.train()
 

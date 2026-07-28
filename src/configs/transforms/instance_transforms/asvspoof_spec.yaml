@@ -1,15 +1,21 @@
 train:
   data_object:
     _target_: src.transforms.LogSpectrogram
-    n_fft: 1724
-    hop_length: 130
-    window_length: 1724
+    sample_rate: 16000
+    n_fft: 512
+    win_length_s: 0.020
+    hop_length_s: 0.010
+    n_filter_banks: 60
+    normalized: False
     fixed_length: 600
 
 inference:
   data_object:
     _target_: src.transforms.LogSpectrogram
-    n_fft: 1724
-    hop_length: 130
-    window_length: 1724
+    sample_rate: 16000
+    n_fft: 512
+    win_length_s: 0.020
+    hop_length_s: 0.010
+    n_filter_banks: 60
+    normalized: False
     fixed_length: 600

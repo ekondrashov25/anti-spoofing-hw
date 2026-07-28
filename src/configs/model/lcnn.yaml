@@ -1,5 +1,5 @@
 _target_: src.model.LCNN
-n_fft: ${transforms.instance_transforms.train.data_object.n_fft}
+n_freq_bins: ${transforms.instance_transforms.train.data_object.n_filter_banks}
 fixed_length: ${transforms.instance_transforms.train.data_object.fixed_length}
 dropout_prob: 0.75
 num_classes: 2
